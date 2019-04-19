@@ -1,0 +1,69 @@
+---
+# Application to deploy
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: sncfday
+spec:
+  replicas: 2 # tells deployment to run 2 pods matching the template
+  template:   # create pods using pod definition in this template
+    metadata:
+      labels:
+        app: sncfday
+        tier: frontend
+    spec:
+      containers:
+      - name: sncfday
+        image: registry.eu-de.bluemix.net/mace/sncf-open-data:latest
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 250m     # 250 millicores = 1/4 core
+            memory: 100Mi # 100 MB
+          limits:
+            cpu: 500m
+            memory: 300Mi
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: sncfday-ingress
+  annotations:
+    # Force the use of https if the request is http
+    ingress.bluemix.net/redirect-to-https: "True"
+spec:
+  tls:
+  - hosts:
+    - gares.sncfcluster.eu-de.containers.appdomain.cloud
+    secretName: sncfcluster
+  rules:
+  - host: gares.sncfcluster.eu-de.containers.appdomain.cloud
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: sncfday
+          servicePort: 3000
+  # - host: www.mycustomdomain.com
+  #   http:
+  #     paths:
+  #     - path: /
+  #       backend:
+  #         serviceName: sncfday
+  #         servicePort: 3000
+---
+# Service to expose frontend
+apiVersion: v1
+kind: Service
+metadata:
+  name: sncfday
+  labels:
+    app: sncfday
+    tier: frontend
+spec:
+  ports:
+  - protocol: TCP
+    port: 3000
+  selector:
+    app: sncfday
+    tier: frontend
