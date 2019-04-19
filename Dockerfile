@@ -1,6 +1,5 @@
-# FROM node:6.9.2
-# Alpine image is much smaller (100MB instead of 700MB)
-FROM node:6.10.3-alpine
+# FROM node:6.10.3-alpine
+FROM node:11.13.0-alpine
 
 # Create app directory
 RUN mkdir -p /usr/src/app
